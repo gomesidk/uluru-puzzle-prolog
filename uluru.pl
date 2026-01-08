@@ -1,5 +1,7 @@
+:- use_module(library(lists)).
+
 consecutive(X,Y,Board) :-
-    append(Prefix,[X,Y|Suffix], Board).
+    append(_Prefix,[X,Y|_Suffix], Board).
 
 next_to(X,X,_).
 next_to(X,Y,[A,B,C,D,E,F]) :-
@@ -10,86 +12,87 @@ next_to(X,Y,[A,B,C,D,E,F]) :-
 anywhere(X,Board) :-
     member(X,Board).
 
+one_space(X,X,_).
 one_space(X,Y,Board) :-
-    append(Prefix,[X,_,Y|Suffix], Board).
+    append(_Prefix,[X,_,Y|_Suffix], Board).
 one_space(X,Y,Board) :-
-    append(Prefix,[Y,_,X|Suffix], Board).
+    append(_Prefix,[Y,_,X|_Suffix], Board).
 
+across(X,X,_).
 across(X,Y,Board) :-
     Board = [X,_,_,Y,_,_];
     Board = [X,_,_,_,Y,_];
     Board = [X,_,_,_,_,Y];
     Board = [_,X,_,Y,_,_];
     Board = [_,X,_,_,Y,_];
-    Board = [_,X,_,_,_,Y].
-across(X,Y,Board) :-
+    Board = [_,X,_,_,_,Y];
     Board = [Y,_,_,X,_,_];
-    Board = [_,Y,_,_,X,_];
+    Board = [Y,_,_,_,X,_];
     Board = [Y,_,_,_,_,X];
     Board = [_,Y,_,X,_,_];
     Board = [_,Y,_,_,X,_];
     Board = [_,Y,_,_,_,X].
 
+same_edge(X,X,_).
 same_edge(X,Y,Board) :-
-    Board = [X,_,_,_,_,Y];
-    Board = [Y,_,_,_,_,X].
-    Board = [_,X,_,_,Y,_];
-    Board = [_,Y,_,_,X,_].
-    Board = [_,_,X,_,_,Y];
-    Board = [_,_,Y,_,_,X]. 
+    Board = [X, Y, _, _, _, _];
+    Board = [_, _, _, X, Y, _];
+    Board = [_, _, _, _, X, Y];
+    Board = [_, _, _, X, _, Y].
 same_edge(X,Y,Board) :-
-    Board = [_,_,_,X,_,Y];
-    Board = [_,_,_,Y,_,X].
-    Board = [_,_,_,_,X,Y];
-    Board = [_,_,_,_,Y,X].      
-same_edge(X,Y,Board) :-
-    Board = [X,Y,_,_,_,_];
-    Board = [Y,X,_,_,_,_].
-    Board = [_,X,Y,_,_,_];
-    Board = [_,Y,X,_,_,_].
-    Board = [_,_,X,Y,_,_];      
-    Board = [_,_,Y,X,_,_].
-same_edge(X,Y,Board) :-
-    Board = [_,_,_,X,Y,_];
-    Board = [_,_,_,Y,X,_].            
-    Board = [_,_,_,_,X,Y];
-    Board = [_,_,_,_,Y,X].
-same_edge(X,Y,Board) :-
-    Board = [_,_,_,_,_,X,Y];
-    Board = [_,_,_,_,_,Y,X].
+    Board = [Y, X, _, _, _, _];
+    Board = [_, _, _, Y, X, _];
+    Board = [_, _, _, _, Y, X];
+    Board = [_, _, _, Y, _, X].
 
 position(X, L, Board) :-
-    nth1(L, Board, X). 
-position(X, L1, Y, L2, Board) :-
-    nth1(L1, Board, X),
-    nth1(L2, Board, Y).
-position(X, L1, Y, L2, Z, L3, Board) :-
-    nth1(L1, Board, X),
-    nth1(L2, Board, Y),
-    nth1(L3, Board, Z). 
-position(X, L1, Y, L2, Z, L3, W, L4, Board) :-
-    nth1(L1, Board, X),
-    nth1(L2, Board, Y),
-    nth1(L3, Board, Z),
-    nth1(L4, Board, W).
-position(X, L1, Y, L2, Z, L3, W, L4, V, L5, Board) :-
-    nth1(L1, Board, X),
-    nth1(L2, Board, Y),
-    nth1(L3, Board, Z),
-    nth1(L4, Board, W),
-    nth1(L5, Board, V).
-position(X, L1, Y, L2, Z, L3, W, L4, V, L5, U, L6, Board) :-
-    nth1(L1, Board, X),
-    nth1(L2, Board, Y),
-    nth1(L3, Board, Z),
-    nth1(L4, Board, W),
-    nth1(L5, Board, V),
-    nth1(L6, Board, U).
+    member(Pos, L),
+    nth1(Pos, Board, X). 
+
 
 solve(Constraints, Board) :-
     Board = [_,_,_,_,_,_],
-    permutation([a,b,c,d,e,f], Board),
-    maplist({Board}/[Constraint]>>call(Constraint, Board), Constraints).
+    permutation([green, yellow, blue, orange, white, black], Board),
+    check_constraints(Constraints, Board).
+
+check_constraints([], _).
+check_constraints([Constraint|Rest], Board) :-
+    call(Constraint, Board),
+    check_constraints(Rest, Board).
 
 
+
+
+
+%% 12 solutions
+example(1, [ next_to(white,orange),
+    next_to(black,black),
+    across(yellow,orange),
+    next_to(green,yellow),
+    position(blue,[1,2,6]),
+    across(yellow,blue) ]).
+
+%% 1 solution
+example(2, [ across(white,yellow),
+    position(black,[1,4]),
+    position(yellow,[1,5]),
+    next_to(green, blue),
+    same_edge(blue,yellow),
+    one_space(orange,black) ]).
+
+%% no solutions (5 constraints are satisfiable)
+example(3, [ across(white,yellow),
+    position(black,[1,4]),
+    position(yellow,[1,5]),
+    same_edge(green, black),
+    same_edge(blue,yellow),
+    one_space(orange,black) ]).
+
+%% same as above, different order of constraints
+example(4, [ position(yellow,[1,5]),
+    one_space(orange,black),
+    same_edge(green, black),
+    same_edge(blue,yellow),
+    position(black,[1,4]),
+    across(white,yellow) ]).
 
