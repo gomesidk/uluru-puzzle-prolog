@@ -60,8 +60,26 @@ check_constraints([Constraint|Rest], Board) :-
     call(Constraint, Board),
     check_constraints(Rest, Board).
 
+best_score(Constraints, Score) :-
+    findall(S, (
+        permutation([green, yellow, blue, orange, white, black], Board),
+        count_satisfied(Constraints, Board, S)
+    ), Scores),
+    max_list(Scores, Score).
 
+count_satisfied(Constraints, Board, Score) :-
+    length(Constraints, Total),
+    count_satisfied_aux(Constraints, Board, 0, Satisfied),
+    Score is Satisfied - Total.
 
+count_satisfied_aux([], _, Acc, Acc).
+count_satisfied_aux([Constraint|Rest], Board, Acc, Result) :-
+    (call(Constraint, Board) ->
+        NewAcc is Acc + 1
+    ;
+        NewAcc = Acc
+    ),
+    count_satisfied_aux(Rest, Board, NewAcc, Result).
 
 
 %% 12 solutions
@@ -95,4 +113,6 @@ example(4, [ position(yellow,[1,5]),
     same_edge(blue,yellow),
     position(black,[1,4]),
     across(white,yellow) ]).
+
+
 
