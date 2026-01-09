@@ -65,7 +65,18 @@ best_score(Constraints, Score) :-
         permutation([green, yellow, blue, orange, white, black], Board),
         count_satisfied(Constraints, Board, S)
     ), Scores),
-    max_list(Scores, Score).
+    max_score(Scores, Score).
+
+max_score([H|T], Max) :-
+    max_score(T, H, Max).
+
+max_score([], Max, Max).
+max_score([H|T], Current, Max) :-
+    (H > Current ->
+        max_score(T, H, Max)
+    ;
+        max_score(T, Current, Max)
+    ).
 
 count_satisfied(Constraints, Board, Score) :-
     length(Constraints, Total),
